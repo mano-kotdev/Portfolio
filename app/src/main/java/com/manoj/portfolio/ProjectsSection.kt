@@ -67,13 +67,18 @@ fun ProjectsSection() {
             )
         )
     }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        items(projects) { project ->
-            ProjectCard(project)
+        CompactAnimatedHeader()
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(projects) { project ->
+                ProjectCard(project)
+            }
         }
     }
 }

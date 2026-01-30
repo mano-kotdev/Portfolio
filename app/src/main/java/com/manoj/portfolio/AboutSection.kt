@@ -17,11 +17,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,12 +28,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Create
@@ -44,6 +39,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -65,11 +61,14 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.manoj.portfolio.ui.theme.PortfolioTheme
 import kotlinx.coroutines.delay
 
 data class AboutCard(
@@ -112,7 +111,8 @@ fun CompactAnimatedHeader() {
     AnimatedVisibility(
         visible = visible,
         enter = slideInVertically(
-            initialOffsetY = { -it }, animationSpec = spring(
+            initialOffsetY = { -it },
+            animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessLow
             )
@@ -121,15 +121,7 @@ fun CompactAnimatedHeader() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        listOf(
-                            Color(0xFF6C63FF),
-                            Color(0xFF4ECDC4)
-                        )
-                    )
-                )
-                .padding(vertical = 24.dp, horizontal = 20.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -146,7 +138,6 @@ fun CompactAnimatedHeader() {
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
-
                     Text(
                         "Senior Android Developer",
                         style = MaterialTheme.typography.bodyMedium,
@@ -163,7 +154,7 @@ fun CompactPulsingProfileCircle() {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.08f,
+        targetValue = 1.25f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -207,30 +198,37 @@ fun CardStack() {
             ),
             AboutCard(
                 2,
-                Icons.Default.Email,
-                "Contact",
-                "your.email@example.com",
-                Color(0xFF4ECDC4)
-            ),
-            AboutCard(
-                3,
                 Icons.Default.LocationOn,
                 "Location",
-                "Your City, Country",
+                "Madurai, Tamil Nadu",
                 Color(0xFFFF6584)
             ),
             AboutCard(
+                3,
+                Icons.Default.Phone,
+                "Contact",
+                "+91-8428724357",
+                Color(0xFFA1F589)
+            ),
+            AboutCard(
                 4,
-                Icons.Default.Link,
-                "Portfolio",
-                "yourwebsite.com",
-                Color(0xFFFFA500)
+                Icons.Default.Email,
+                "Mail",
+                "contact.mano95@gmail.com",
+                Color(0xFF4ECDC4)
             ),
             AboutCard(
                 5,
+                Icons.Default.Link,
+                "Connection",
+                "https://www.linkedin.com/in/manoj-kumar-r-android",
+                Color(0xFFFFA500)
+            ),
+            AboutCard(
+                6,
                 Icons.Default.Create,
-                "GitHub",
-                "github.com/yourusername",
+                "My Works",
+                "https://github.com/mano-kotdev",
                 Color(0xFF9C27B0)
             )
         )
@@ -261,13 +259,13 @@ fun CardStack() {
                     onSwipeLeft = {
                         if (index == 0) {
                             direction = -1
-                            currentIndex = (currentIndex + 1) % cards.size
+                            currentIndex = (currentIndex + direction + cards.size) % cards.size
                         }
                     },
                     onSwipeRight = {
                         if (index == 0) {
                             direction = 1
-                            currentIndex = (currentIndex + 1) % cards.size
+                            currentIndex = (currentIndex + direction) % cards.size
                         }
                     }
                 )
@@ -276,7 +274,7 @@ fun CardStack() {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 40.dp)
+                .padding(bottom = 28.dp)
         ) {
             CardCounter(
                 currentIndex = currentIndex,
@@ -310,7 +308,7 @@ fun CardCounter(currentIndex: Int, totalCards: Int) {
                                 )
                             )
                         else
-                            androidx.compose.ui.graphics.SolidColor(Color.Gray.copy(alpha = 0.3f))
+                            SolidColor(Color.Gray.copy(alpha = 0.3f))
                     )
             )
         }
@@ -491,54 +489,10 @@ fun SwipeHint() {
     }
 }
 
-
+@Preview
 @Composable
-fun FadeInCard(delay: Long, content: @Composable () -> Unit) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(delay)
-        visible = true
-    }
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(animationSpec = tween(500)) + expandVertically()
-    ) {
-        content()
-    }
-}
-
-@Composable
-fun InfoCard(icon: ImageVector, title: String, content: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
-            Column {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-            }
-        }
+fun AboutSectionPreview() {
+    PortfolioTheme {
+        AboutSection()
     }
 }

@@ -30,16 +30,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Person2
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
@@ -96,56 +92,6 @@ fun PortfolioApp() {
                 )
             }
         ) { padding ->
-            /*Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                AnimatedHeader()
-                PrimaryTabRow(
-                    selectedTabIndex = selectedScreen,
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    indicator = {
-                        TabRowDefaults.PrimaryIndicator(
-                            Modifier.tabIndicatorOffset(selectedScreen, matchContentSize = true),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                ) {
-                    screens.forEachIndexed { index, title ->
-                        Tab(
-                            selected = index == selectedScreen,
-                            onClick = { selectedScreen = index },
-                            text = {
-                                Text(
-                                    title,
-                                    fontWeight = if (selectedScreen == index) FontWeight.Bold else FontWeight.Normal
-                                )
-                            }
-                        )
-                    }
-                }
-                AnimatedContent(
-                    targetState = selectedScreen,
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(300)).togetherWith(
-                            fadeOut(
-                                animationSpec = tween(
-                                    300
-                                )
-                            )
-                        )
-                    },
-                    label = "content"
-                ) { tab ->
-                    when (tab) {
-                        0 -> AboutSection()
-                        1 -> SkillsSection()
-                        2 -> ProjectsSection()
-                    }
-                }
-            }*/
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -168,85 +114,6 @@ fun PortfolioApp() {
                 }
             }
         }
-    }
-}
-
-
-@Composable
-fun AnimatedHeader() {
-    var visible by remember {
-        mutableStateOf(false)
-    }
-    LaunchedEffect(Unit) {
-        visible = true
-    }
-    AnimatedVisibility(
-        visible = visible, enter = slideInVertically(
-            initialOffsetY = { -it }, animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow
-            )
-        ) + fadeIn()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF6C63FF), Color(0xFF4ECDC4)
-                        )
-                    )
-                )
-                .padding(32.dp), contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                PulsingProfileCircle()
-                Text(
-                    "Manoj Kumar R",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    "Senior Android Developer",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun PulsingProfileCircle() {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f, targetValue = 1.1f, animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing), repeatMode = RepeatMode.Reverse
-        ), label = "scale"
-    )
-    Box(
-        modifier = Modifier
-            .size(120.dp)
-            .scale(scale)
-            .clip(CircleShape)
-            .background(
-                Brush.radialGradient(
-                    listOf(
-                        Color(0xFFFF6584), Color(0xFF6C63FF)
-                    )
-                )
-            ), contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            Icons.Default.Person2,
-            contentDescription = "Profile",
-            modifier = Modifier.size(64.dp),
-            tint = Color.White
-        )
     }
 }
 

@@ -61,13 +61,18 @@ fun SkillsSection() {
             Skill("Testing", 0.75f, Icons.Default.BugReport, Color(0xFF9C27B0))
         )
     }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        items(skills) { skill ->
-            SkillCard(skill)
+        CompactAnimatedHeader()
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(skills) { skill ->
+                SkillCard(skill)
+            }
         }
     }
 }
