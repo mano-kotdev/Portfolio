@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +64,7 @@ import kotlinx.coroutines.delay
 /**
  * CardStack Component
  *
- * A beautiful, swipeable card stack component inspired by modern design systems.
+ * A swipeable card stack component inspired by modern design systems.
  * Features smooth animations, gesture support, and a premium feel.
  *
  * Perfect for:
@@ -71,7 +73,7 @@ import kotlinx.coroutines.delay
  * - Tutorial walkthroughs
  *
  * @author Manoj Kumar R
- * @see https://github.com/yourusername/cardstack-compose
+ * @see https://www.linkedin.com/in/manoj-kumar-r-android
  */
 
 
@@ -91,7 +93,6 @@ data class CardStackItem(
     val content: String,
     val accentColor: Color
 )
-
 
 /**
  * Main CardStack Composable
@@ -135,7 +136,7 @@ fun CardStack(
             val index = 2 - reverseIndex
             val actualCardIndex = (currentIndex + index) % cards.size
             val scale = 1f - (index * 0.05f)
-            val offsetY = -(index * 14).dp
+            val offsetY = -(index * 24).dp
 
             Box(
                 modifier = Modifier
@@ -215,7 +216,7 @@ fun SwipeHint() {
  * Individual Card in the Stack
  *
  * A single swipeable card with entrance animations, gesture support,
- * and beautiful visual design.
+ * and visual design.
  *
  * Features:
  * - Swipe gestures (left/right)
@@ -235,7 +236,7 @@ fun StackCard(
     onSwipe: () -> Unit
 ) {
     var visible by remember { mutableStateOf(false) }
-    var offsetX by remember { mutableStateOf(0f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(card.id) {
         offsetX = 0f
@@ -264,7 +265,7 @@ fun StackCard(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .fillMaxHeight(0.8f)
                 .offset(x = offsetX.dp)
                 .rotate(rotation)
                 .pointerInput(Unit) {
