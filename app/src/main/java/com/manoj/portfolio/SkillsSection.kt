@@ -1,6 +1,8 @@
 package com.manoj.portfolio
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -11,32 +13,36 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Architecture
-import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Code
@@ -55,46 +61,36 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 @Composable
 fun SkillsSection() {
-    /*val skills = remember {
-        listOf(
-            Skill("Kotlin", 0.95f, Icons.Default.Code, Color(0xFF6C63FF)),
-            Skill("Jetpack Compose", 0.90f, Icons.Default.Brush, Color(0xFF4ECDC4)),
-            Skill("Architecture", 0.85f, Icons.Default.Architecture, Color(0xFFFF6584)),
-            Skill("UI/UX Design", 0.80f, Icons.Default.Palette, Color(0xFFFFA500)),
-            Skill("Testing", 0.75f, Icons.Default.BugReport, Color(0xFF9C27B0))
-        )
-    }
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        CompactAnimatedHeader()
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(skills) { skill ->
-                SkillCard(skill)
-            }
-        }
-    }*/
     val skillCategories = remember {
         listOf(
             SkillCategory(
@@ -148,7 +144,7 @@ fun SkillsSection() {
                     Skill("Custom Views", 0.85f, Color(0xFF9C27B0)),
                     Skill("Jetpack Compose", 0.90f, Color(0xFF9C27B0))
                 ),
-                icon = Icons.Default.Brush,
+                icon = Icons.Default.Palette,
                 accentColor = Color(0xFF9C27B0)
             ),
             SkillCategory(
@@ -163,13 +159,12 @@ fun SkillsSection() {
                 accentColor = Color(0xFF00BCD4)
             ),
             SkillCategory(
-                title = "Testing & CI/CD",
+                title = "Testing",
                 skills = listOf(
                     Skill("JUnit", 0.90f, Color(0xFFE91E63)),
                     Skill("Espresso", 0.85f, Color(0xFFE91E63)),
                     Skill("Mockito", 0.85f, Color(0xFFE91E63)),
-                    Skill("Robolectric", 0.75f, Color(0xFFE91E63)),
-                    Skill("GitHub/GitLab CI", 0.80f, Color(0xFFE91E63))
+                    Skill("Robolectric", 0.75f, Color(0xFFE91E63))
                 ),
                 icon = Icons.Default.BugReport,
                 accentColor = Color(0xFFE91E63)
@@ -202,9 +197,7 @@ fun SkillsSection() {
                     Skill("Technical Leadership", 0.85f, Color(0xFF009688)),
                     Skill("Mentorship", 0.90f, Color(0xFF009688)),
                     Skill("Agile Methodologies", 0.85f, Color(0xFF009688)),
-                    Skill("Code Reviews", 0.95f, Color(0xFF009688)),
-                    Skill("System Design", 0.85f, Color(0xFF009688)),
-                    Skill("Resource Planning", 0.80f, Color(0xFF009688))
+                    Skill("Code Reviews", 0.95f, Color(0xFF009688))
                 ),
                 icon = Icons.Default.Group,
                 accentColor = Color(0xFF009688)
@@ -221,95 +214,278 @@ fun SkillsSection() {
             )
         )
     }
-    var selectedCategory by remember { mutableStateOf<Int?>(null) }
+
+    var isCircularLayout by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         CompactAnimatedHeader()
-        Text(
-            "Skills & Expertise",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
-        )
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            itemsIndexed(skillCategories) { index, category ->
-                ExpandableSkillCard(
-                    category = category,
-                    isExpanded = selectedCategory == index,
-                    onToggle = {
-                        selectedCategory = if (selectedCategory == index) null else index
-                    },
-                    index = index
+            Text(
+                "Skills & Expertise",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            
+            // Toggle Button
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clickable { isCircularLayout = !isCircularLayout }
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isCircularLayout) Icons.Default.KeyboardArrowDown else Icons.Default.Speed,
+                    contentDescription = "Toggle Layout",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
-        /*LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+
+        AnimatedContent(
+            targetState = isCircularLayout,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(500)) togetherWith fadeOut(animationSpec = tween(500))
+            },
+            label = "LayoutSwitch"
+        ) { circular ->
+            if (circular) {
+                CircularSkillsMenu(skillCategories)
+            } else {
+                ListViewSkills(skillCategories)
+            }
+        }
+    }
+}
+
+@Composable
+fun ListViewSkills(skillCategories: List<SkillCategory>) {
+    var selectedCategory by remember { mutableStateOf<Int?>(null) }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        itemsIndexed(skillCategories) { index, category ->
+            ExpandableSkillCard(
+                category = category,
+                isExpanded = selectedCategory == index,
+                onToggle = {
+                    selectedCategory = if (selectedCategory == index) null else index
+                },
+                index = index
+            )
+        }
+    }
+}
+
+@Composable
+fun CircularSkillsMenu(categories: List<SkillCategory>) {
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val rotationAnimatable = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    
+    // Track center of the circle for drag calculations
+    var center by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    
+    val stepAngle = 360f / categories.size
+
+    fun animateToNearest(targetIndex: Int) {
+        scope.launch {
+            val currentRotation = rotationAnimatable.value
+            val targetRotation = -targetIndex * stepAngle
+            
+            // Shortest path logic
+            var diff = (targetRotation - currentRotation) % 360f
+            if (diff > 180f) diff -= 360f
+            if (diff < -180f) diff += 360f
+            
+            rotationAnimatable.animateTo(
+                targetValue = currentRotation + diff,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned {
+                center = androidx.compose.ui.geometry.Offset(
+                    it.size.width / 2f,
+                    it.size.height / 2f
+                )
+            }
+            .pointerInput(categories.size) {
+                detectDragGestures(
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        val touchAngle = atan2(
+                            y = change.position.y - center.y,
+                            x = change.position.x - center.x
+                        ) * (180f / PI.toFloat())
+                        
+                        val prevTouchAngle = atan2(
+                            y = (change.position.y - dragAmount.y) - center.y,
+                            x = (change.position.x - dragAmount.x) - center.x
+                        ) * (180f / PI.toFloat())
+                        
+                        var delta = touchAngle - prevTouchAngle
+                        if (delta > 180f) delta -= 360f
+                        if (delta < -180f) delta += 360f
+                        
+                        scope.launch {
+                            rotationAnimatable.snapTo(rotationAnimatable.value + delta)
+                        }
+                    },
+                    onDragEnd = {
+                        val currentRotation = rotationAnimatable.value
+                        // Calculate target index based on current total rotation
+                        val targetIndex = ((-currentRotation / stepAngle).roundToInt() % categories.size + categories.size) % categories.size
+                        selectedIndex = targetIndex
+                        animateToNearest(targetIndex)
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        val radius = minOf(maxWidth, maxHeight) / 2.5f
+        val density = LocalDensity.current
+        val radiusPx = with(density) { radius.toPx() }
+
+        // Draw Outer Decorative Ring
+        Canvas(modifier = Modifier.size(radius * 2.2f)) {
+            drawCircle(
+                color = Color.Gray.copy(alpha = 0.1f),
+                style = Stroke(width = 2.dp.toPx())
+            )
+        }
+
+        // Central Content
+        Box(
+            modifier = Modifier
+                .size(maxWidth * 0.65f)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
         ) {
-            var index = 0
-            while (index < skillCategories.size) {
-                val currentIndex = index
-                when {
-                    currentIndex % 5 == 0 -> {
-                        item {
-                            FullWidthSkillCard(skillCategories[currentIndex])
+            AnimatedContent(
+                targetState = categories[selectedIndex],
+                transitionSpec = {
+                    (scaleIn(initialScale = 0.8f) + fadeIn()).togetherWith(scaleOut(targetScale = 0.8f) + fadeOut())
+                },
+                label = "SelectedCategory"
+            ) { category ->
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        category.icon,
+                        contentDescription = null,
+                        tint = category.accentColor,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Text(
+                        category.title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Show top 4 skills in the center
+                    category.skills.take(4).forEach { skill ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                skill.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                            Text(
+                                "${(skill.level * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = category.accentColor
+                            )
                         }
-                        index++
-                    }
-
-                    currentIndex % 5 == 1 && currentIndex + 1 < skillCategories.size -> {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    CompactSkillCard(skillCategories[currentIndex])
-                                }
-                                Box(
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    CompactSkillCard(skillCategories[currentIndex + 1])
-                                }
-                            }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray.copy(alpha = 0.1f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(skill.level)
+                                    .fillMaxHeight()
+                                    .background(category.accentColor)
+                            )
                         }
-                        index += 2
-                    }
-
-                    currentIndex % 5 == 3 && currentIndex + 1 < skillCategories.size -> {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Box(modifier = Modifier.weight(0.6f)) {
-                                    CompactSkillCard(skillCategories[currentIndex])
-                                }
-                                Box(modifier = Modifier.weight(0.4f)) {
-                                    CompactSkillCard(skillCategories[currentIndex + 1])
-                                }
-                            }
-                        }
-                        index += 2
-                    }
-
-                    else -> {
-                        item {
-                            FullWidthSkillCard(skillCategories[currentIndex])
-                        }
-                        index++
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
-        }*/
+        }
+
+        // Circular Icons
+        categories.forEachIndexed { index, category ->
+            val angleDeg = rotationAnimatable.value + (index * stepAngle)
+            val angleRad = angleDeg * (PI.toFloat() / 180f)
+            
+            val x = (radiusPx * cos(angleRad)).roundToInt()
+            val y = (radiusPx * sin(angleRad)).roundToInt()
+
+            val isSelected = index == selectedIndex
+            val scale by animateFloatAsState(
+                targetValue = if (isSelected) 1.5f else 1f,
+                label = "iconScale"
+            )
+            
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(x, y) }
+                    .size(50.dp)
+                    .scale(scale)
+                    .clip(CircleShape)
+                    .background(
+                        if (isSelected) category.accentColor else MaterialTheme.colorScheme.surface
+                    )
+                    .clickable {
+                        selectedIndex = index
+                        animateToNearest(index)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    category.icon,
+                    contentDescription = category.title,
+                    tint = if (isSelected) Color.White else category.accentColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
     }
 }
 
@@ -515,326 +691,5 @@ fun SkillProgressItem(skillName: String, progress: Float, color: Color) {
                     )
             )
         }
-    }
-}
-
-@Composable
-fun FullWidthSkillCard(category: SkillCategory) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(100)
-        visible = true
-    }
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInHorizontally(
-            initialOffsetX = { -it },
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy
-            )
-        ) + fadeIn()
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(category.accentColor.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            category.icon,
-                            contentDescription = null,
-                            tint = category.accentColor,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Text(
-                        category.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-                category.skills.forEach { skill ->
-                    ImprovedAnimatedProgressBar(
-                        skillName = skill.name,
-                        progress = skill.level,
-                        color = skill.color
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CompactSkillCard(category: SkillCategory) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(150)
-        visible = true
-    }
-    AnimatedVisibility(
-        visible = visible,
-        enter = scaleIn(
-            initialScale = 0.8f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy
-            )
-        ) + fadeIn()
-    ) {
-        Card(
-            modifier = Modifier.fillMaxSize(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(
-                            brush = Brush.radialGradient(
-                                listOf(
-                                    category.accentColor.copy(alpha = 0.3f),
-                                    category.accentColor.copy(alpha = 0.1f)
-                                )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        category.icon,
-                        contentDescription = null,
-                        tint = category.accentColor,
-                        modifier = Modifier.size(26.dp)
-                    )
-                }
-                Text(
-                    category.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-            }
-            category.skills.forEach { skill ->
-                CompactProgressBar(skill.name, skill.level, skill.color)
-            }
-        }
-    }
-}
-
-@Composable
-fun CompactProgressBar(skillName: String, progress: Float, color: Color) {
-    var animatedProgress by remember { mutableFloatStateOf(0f) }
-
-    LaunchedEffect(Unit) {
-        delay(300)
-        animatedProgress = progress
-    }
-
-    val animatedValue by animateFloatAsState(
-        targetValue = animatedProgress,
-        animationSpec = tween(1000, easing = FastOutSlowInEasing),
-        label = "progress"
-    )
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            skillName,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.White,
-            maxLines = 1
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(Color.Gray.copy(alpha = 0.2f))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedValue)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(color)
-            )
-        }
-    }
-}
-
-
-@Composable
-fun SkillCard(skill: Skill) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(100)
-        visible = true
-    }
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInHorizontally(
-            initialOffsetX = { it },
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-        ) + fadeIn()
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    /* Icon(
-                         skill.icon,
-                         contentDescription = null,
-                         tint = skill.color,
-                         modifier = Modifier.size(28.dp)
-                     )*/
-                    Text(
-                        skill.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                AnimatedProgressBar(
-                    skill.level,
-                    skill.color
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ImprovedAnimatedProgressBar(skillName: String, progress: Float, color: Color) {
-    var animatedProgress by remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(Unit) {
-        delay(200)
-        animatedProgress = progress
-    }
-    val animatedValue by animateFloatAsState(
-        targetValue = animatedProgress,
-        animationSpec = tween(1000, easing = FastOutSlowInEasing),
-        label = "progress"
-    )
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                skillName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                "${(animatedValue * 100).toInt()}%",
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Color.Gray.copy(alpha = 0.2f))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedValue)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                color, color.copy(alpha = 0.7f)
-                            )
-                        )
-                    )
-            )
-        }
-    }
-}
-
-@Composable
-fun AnimatedProgressBar(progress: Float, color: Color) {
-    var animatedProgress by remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(Unit) {
-        animatedProgress = progress
-    }
-    val animatedValue by animateFloatAsState(
-        targetValue = animatedProgress,
-        animationSpec = tween(1000, easing = FastOutSlowInEasing),
-        label = "progress"
-    )
-    Column {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Gray.copy(alpha = 0.2f))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedValue)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                color, color.copy(alpha = 0.7f)
-                            )
-                        )
-                    )
-            )
-        }
-        Text(
-            "${(animatedValue * 100).toInt()}%",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray,
-            modifier = Modifier.padding(top = 4.dp)
-        )
     }
 }
